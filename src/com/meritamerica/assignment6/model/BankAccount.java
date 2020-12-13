@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -24,12 +25,21 @@ public class BankAccount {
 	private Date openDate;
 	private List<Transaction> transactions;
 	
-	private 
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "ah_ID", referencedColumnName = "ah_ID")
+	private AccountHolder accountHolders; 
+
+	@Column(name = "ah_ID")
+	private long ahID;
 	// independent constructor
 	public BankAccount() {
 		this.transactions = new ArrayList<>();
 		this.openDate = new Date();
 		this.accountNumber = MeritBank.getNextAccountNumber();
+	}
+	
+	public AccountHolder getAccountHolders() {
+		return accountHolders;
 	}
 	
 	BankAccount(double balance, double interestRate) {
