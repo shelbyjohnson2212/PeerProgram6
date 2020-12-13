@@ -2,12 +2,93 @@ package com.meritamerica.assignment6.model;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.meritamerica.assignment6.exceptions.*;
+
+@Entity
+@Table(name = "accountHolder")
+@RestController()
+@RequestMapping("AccountHolder")
+public class AccountHolder implements Comparable<AccountHolder>{
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "user_id")
+	private long id;
+
+		
+	@Autowired
+	AccountHolderService service;
+	
+	@PostMapping("/")
+	@ResponseStatus(HttpStatus.CREATED)
+	public AccountHolder createAccountHolder(@RequestBody @Valid AccountHolder accountHolder) {
+		return service.addAccountHolder(accountHolder);
+	}
+	
+	@GetMapping("/")
+	public List<AccountHolder> getAccountHolders(){
+		return service.getAll();
+	}
+	@GetMapping("/{id}")
+	public AccountHolder getAccountHolder(@PathVariable Long id) {
+		return service.getById(id);
+	}
+	@PostMapping("/{id}/CheckingAccounts")
+	@ResponseStatus(HttpStatus.CREATED)
+	public CheckingAccount addCheckingAccount(@PathVariable Long id, @RequestBody @Valid CheckingAccount checkingAccount) {
+		AccountHolder accountHolder = getAccountHolder(id);
+		return service.addCheckingAccount(accountHolder, checkingAccount);
+	}
+	@GetMapping("/{id}/CheckingAccounts")
+	public List<CheckingAccount> getAllCheckingAccounts(@PathVariable(value="id") Long id){
+		AccountHolder accountHolder = getAccountHolder(id);
+		return accountHolder.getCheckingAccounts();
+	}
+	@PostMapping("/{id}/SavingsAccounts")
+	@ResponseStatus(HttpStatus.CREATED)
+	public SavingsAccount addSavingsAccount(@PathVariable Long id, @RequestBody @Valid SavingsAccount savingsAccount) {
+		AccountHolder accountHolder = getAccountHolder(id);
+		return service.addSavingsAccount(accountHolder, savingsAccount);
+	}
+	@GetMapping("/{id}/SavingsAccounts")
+	public List<SavingsAccount> getAllSavingsAccounts(@PathVariable(value="id") Long id){
+		AccountHolder accountHolder = getAccountHolder(id);
+		return accountHolder.getSavingsAccount();
+	}
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "id", referencedColumnName = "id")
+	private AccountHolderContactData accountHolderContactData;
+	
+	
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<CheckingAccount> checkingAccounts;
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<SavingsAccount> savingsAccounts;
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<CDAccount> cdAccounts;
+	
+	
+	
+	
+}
+
 
 
 // Declare a class that implements an interface 
@@ -29,7 +110,7 @@ public class AccountHolder implements Comparable{
 	    private SavingsAccount[] savingsAccounts;
 	    private CDAccount[] CDAccounts;
 	    
-	    // keep track of numbers of checkings and saving accounts
+	    // keep track of numbers of checking and saving accounts
 	    private int numberOfCheckings = 0;
 	    private int numberOfSavings = 0;
 	    private int numberOfCDAs = 0;
@@ -49,7 +130,7 @@ public class AccountHolder implements Comparable{
 	    public AccountHolder (){	
 	    	this.id = AccountHolder.ID;
 	    	AccountHolder.ID++;
-	    	// instantiate array of Checkings
+	    	// instantiate array of Checking
 	        checkingAccounts = new CheckingAccount[10];
 	        savingsAccounts = new SavingsAccount[10];
 	        CDAccounts = new CDAccount[10]; 
@@ -168,7 +249,7 @@ public class AccountHolder implements Comparable{
 	    	}
 	    }
 	    
-	    public SavingsAccount[] getSavingsAccounts() {
+	    public List<SavingsAccount> getSavingsAccounts() {
 	    	SavingsAccount[] savings = Arrays.copyOf(this.savingsAccounts, this.numberOfSavings);
 	    	return savings;
 	    }
