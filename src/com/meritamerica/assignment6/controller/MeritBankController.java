@@ -101,7 +101,6 @@ public class MeritBankController {
 	@GetMapping(value="/AccountHolders/{id}/SavingsAccounts")
 	public SavingsAccount[] getSavings(@PathVariable("id") long id) throws NotFoundException {
 		AccountHolder account = this.getAccountHolder(id);
-		
 		return account.getSavingsAccounts();
 	}
 	

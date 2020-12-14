@@ -4,6 +4,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.persistence.Entity;
+
+@Entity
 	// SavingsAccount(child class) inherit methods and variables from BankAccount(parent class)
 public class SavingsAccount extends BankAccount {
 	private static double INTEREST_RATE = 0.01;

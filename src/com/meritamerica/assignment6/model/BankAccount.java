@@ -13,7 +13,8 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+@MappedSuperclass
+@Table(name = "bankAccount")
 @JsonIgnoreProperties(value = { "transactions" })
 public class BankAccount {
 	
@@ -120,8 +121,6 @@ public class BankAccount {
 		return this.transactions;
 	}
 	
-	
-
 	public long getAccountNumber() {
 		return this.accountNumber;
 	}
@@ -157,6 +156,4 @@ public class BankAccount {
 	public void setInterestRate(double interestRate) {
 		this.interestRate = interestRate;
 	}
-	
-	
 }

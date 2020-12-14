@@ -4,12 +4,12 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,88 +26,52 @@ import com.meritamerica.assignment6.exceptions.*;
 @RestController()
 @RequestMapping("AccountHolder")
 public class AccountHolder implements Comparable<AccountHolder>{
-	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "user_id")
-	private long id;
+	private static long id;
 
-		
-	@Autowired
-	AccountHolderService service;
-	
-	@PostMapping("/")
-	@ResponseStatus(HttpStatus.CREATED)
-	public AccountHolder createAccountHolder(@RequestBody @Valid AccountHolder accountHolder) {
-		return service.addAccountHolder(accountHolder);
-	}
-	
-	@GetMapping("/")
-	public List<AccountHolder> getAccountHolders(){
-		return service.getAll();
-	}
-	@GetMapping("/{id}")
-	public AccountHolder getAccountHolder(@PathVariable Long id) {
-		return service.getById(id);
-	}
-	@PostMapping("/{id}/CheckingAccounts")
-	@ResponseStatus(HttpStatus.CREATED)
-	public CheckingAccount addCheckingAccount(@PathVariable Long id, @RequestBody @Valid CheckingAccount checkingAccount) {
-		AccountHolder accountHolder = getAccountHolder(id);
-		return service.addCheckingAccount(accountHolder, checkingAccount);
-	}
-	@GetMapping("/{id}/CheckingAccounts")
-	public List<CheckingAccount> getAllCheckingAccounts(@PathVariable(value="id") Long id){
-		AccountHolder accountHolder = getAccountHolder(id);
-		return accountHolder.getCheckingAccounts();
-	}
-	@PostMapping("/{id}/SavingsAccounts")
-	@ResponseStatus(HttpStatus.CREATED)
-	public SavingsAccount addSavingsAccount(@PathVariable Long id, @RequestBody @Valid SavingsAccount savingsAccount) {
-		AccountHolder accountHolder = getAccountHolder(id);
-		return service.addSavingsAccount(accountHolder, savingsAccount);
-	}
-	@GetMapping("/{id}/SavingsAccounts")
-	public List<SavingsAccount> getAllSavingsAccounts(@PathVariable(value="id") Long id){
-		AccountHolder accountHolder = getAccountHolder(id);
-		return accountHolder.getSavingsAccount();
-	}
+	@NotBlank(message = "First Name is required")
+	private String firstName;
+
+	private String middleName;
+
+	@NotBlank(message = "Last Name is required")
+	private String lastName;
+
+	@Size(min = 9)
+	@NotBlank(message = "SSN is required")
+	private String ssn;
+
 	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id")
-	private AccountHolderContactData accountHolderContactData;
-	
+	@JoinColumn(name = "user_id", referencedColumnName = "id")
+	private AccountHolder accountHolderData;
+  
 	
 	@OneToMany(cascade = CascadeType.ALL)
-	private List<CheckingAccount> checkingAccounts;
+	private CheckingAccount[] checkingAccounts;
+
 	@OneToMany(cascade = CascadeType.ALL)
-	private List<SavingsAccount> savingsAccounts;
+	private SavingsAccount[] savingsAccounts;
+
 	@OneToMany(cascade = CascadeType.ALL)
-	private List<CDAccount> cdAccounts;
+	private List<CDAccount> CDAccount;	
 	
-	
-	
-	
-}
-
-
-
 // Declare a class that implements an interface 
-public class AccountHolder implements Comparable{ 
-		private static long ID = 1;	
+//public class AccountHolder implements Comparable{ 
+		//private static long ID = 1;	
 		
-		@Column(name = "ah_ID")
-		private long id;
 	    // Class member variables 
-		@NotNull(message="First name can not be Null")
-	 	private String firstName;
-		private String middleName;
-	    @NotNull(message="Last name can not be Null")
-	    private String lastName;
-	    @NotNull
-	    @Size(min=9, message="SNN can not be less than 9 characters")
-	    private String ssn;
-	    private CheckingAccount[] checkingAccounts;
-	    private SavingsAccount[] savingsAccounts;
+//		@NotNull(message="First name can not be Null")
+//	 	private String firstName;
+//		private String middleName;
+//	    @NotNull(message="Last name can not be Null")
+//	    private String lastName;
+//	    @NotNull
+//	    @Size(min=9, message="SNN can not be less than 9 characters")
+//	    private String ssn;
+	   // private CheckingAccount[] checkingAccounts;
+	    //private SavingsAccount[] savingsAccounts;
 	    private CDAccount[] CDAccounts;
 	    
 	    // keep track of numbers of checking and saving accounts
@@ -128,8 +92,8 @@ public class AccountHolder implements Comparable{
 	    }
 	    
 	    public AccountHolder (){	
-	    	this.id = AccountHolder.ID;
-	    	AccountHolder.ID++;
+	    	this.id = AccountHolder.id;
+	    	AccountHolder.id++;
 	    	// instantiate array of Checking
 	        checkingAccounts = new CheckingAccount[10];
 	        savingsAccounts = new SavingsAccount[10];
@@ -249,7 +213,7 @@ public class AccountHolder implements Comparable{
 	    	}
 	    }
 	    
-	    public List<SavingsAccount> getSavingsAccounts() {
+	    public SavingsAccount[] getSavingsAccounts() {
 	    	SavingsAccount[] savings = Arrays.copyOf(this.savingsAccounts, this.numberOfSavings);
 	    	return savings;
 	    }
@@ -329,16 +293,16 @@ public class AccountHolder implements Comparable{
 	    	}
 	    }
 
-		@Override
-		public int compareTo(Object o) {
-			AccountHolder acc = (AccountHolder) o;
-			if (this.getCombinedBalance() < acc.getCombinedBalance())
-				return -1;
-			else if (this.getCombinedBalance() > acc.getCombinedBalance())
-				return 1;
-			else
-				return 0;
-		}
+//		//@Override
+//		public int compareTo(Object o) {
+//			AccountHolder acc = (AccountHolder) o;
+//			if (this.getCombinedBalance() < acc.getCombinedBalance())
+//				return -1;
+//			else if (this.getCombinedBalance() > acc.getCombinedBalance())
+//				return 1;
+//			else
+//				return 0;
+//		}
 		
 		// find the account has that ID in this account holder and return that account, if can not find, return null
 		public BankAccount findAccount(long ID) {
@@ -426,5 +390,11 @@ public class AccountHolder implements Comparable{
 
 		public void setId(int id) {
 			this.id = id;
+		}
+
+		@Override
+		public int compareTo(AccountHolder o) {
+			// TODO Auto-generated method stub
+			return 0;
 		}
 }

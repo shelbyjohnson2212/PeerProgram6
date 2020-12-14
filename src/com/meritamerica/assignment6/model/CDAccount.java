@@ -4,6 +4,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.persistence.Entity;
+
+
+@Entity
 public class CDAccount extends BankAccount{
 	/**
 	 * Instance Variables 
