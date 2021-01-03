@@ -92,7 +92,7 @@ public class AccountHolder implements Comparable<AccountHolder>{
 	    }
 	    
 	    public AccountHolder (){	
-	    	this.id = AccountHolder.id;
+	    	//this.id = AccountHolder.id;
 	    	AccountHolder.id++;
 	    	// instantiate array of Checking
 	        checkingAccounts = new CheckingAccount[10];

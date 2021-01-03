@@ -1,159 +1,88 @@
 package com.meritamerica.assignment6.model;
 
-
-// Using DecimalFormat Class, one can format a value into specific pattern using its format() method
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import com.meritamerica.assignment6.exceptions.*;
 import java.util.Date;
-import java.util.List;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Table;
+import javax.validation.constraints.Min;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @MappedSuperclass
-@Table(name = "bankAccount")
-@JsonIgnoreProperties(value = { "transactions" })
+@Table(name = "bankAccounts")
 public class BankAccount {
 	
-	// member variables of BankAccount class
-	protected long accountNumber;
-	private double balance;
-	@NotNull
-	private double interestRate;
-	private Date openDate;
-	private List<Transaction> transactions;
-	
-	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "ah_ID", referencedColumnName = "ah_ID")
-	private AccountHolder accountHolders; 
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private long accountNumber;
 
-	@Column(name = "ah_ID")
-	private long ahID;
-	// independent constructor
+	@Min(0)
+	private double balance;
+	private double interestRate;
+	private Date OpenedOn;
+	
 	public BankAccount() {
-		this.transactions = new ArrayList<>();
-		this.openDate = new Date();
-		this.accountNumber = MeritBank.getNextAccountNumber();
+		this.OpenedOn = new Date();
 	}
-	
-	public AccountHolder getAccountHolders() {
-		return accountHolders;
-	}
-	
-	BankAccount(double balance, double interestRate) {
-		this(MeritBank.getNextAccountNumber(), balance, interestRate, new Date());
-	}
-	
-	BankAccount(double balance, double interestRate, Date accountOpenedOn) {
-		this(MeritBank.getNextAccountNumber(), balance, interestRate, accountOpenedOn);
-	}
-	
-	BankAccount(long accountNumber, double balance, double interestRate, Date accountOpenedOn) {
-		// assume that we don't have to check if the account number that is passed in the parameter is valid (unique)
-		this.accountNumber = accountNumber;
+
+	public BankAccount(double balance, double interestRate) {
 		this.balance = balance;
 		this.interestRate = interestRate;
-		this.openDate = accountOpenedOn;
-		
-		transactions = new ArrayList<>();
 	}
 	
-	// don't know the purpose of using BankAccount static readFromString
-	public static BankAccount readFromString(String accountData) throws ParseException {
-		String[] data = accountData.split(",");
-		
-		// Create a date formatter
-		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-		int accNumb = Integer.parseInt(data[0]);
-		double balance = Double.parseDouble(data[1]);
-		double interestRate = Double.parseDouble(data[2]);
-		Date openDate = formatter.parse(data[3]);	// parse the date into date object
-	    
-	    return new BankAccount(accNumb, balance, interestRate, openDate);
+	public BankAccount(double balance, double interestRate, long accountNumber, Date accountOpenedOn) {
+		this.balance = balance;
+		this.interestRate = interestRate;
 	}
-	
-	public String writeToString() {
-		DecimalFormat df = new DecimalFormat("#.####");
-		String data = this.getAccountNumber() + "," + df.format(this.getBalance()) + "," 
-				+ df.format(this.getInterestRate()) + "," + MeritBank.formatDate(this.getOpenedOn());
-		return data;
-	}
-	
-	public boolean withdraw(double amount) {
-		if (amount <= 0) {
-			System.out.println("The amount needs to be more than 0");
-			return false;
-		} else if (amount > this.balance) {
-			System.out.println("The amount need to be smaller or equal to the balance");
-			return false;
-		} else {
-			this.balance -= amount;
-			return true;
+
+	public boolean withdraw(double amount) throws ExceedsAvailableBalanceException, NotFoundException {
+		if (amount > this.balance) {
+			throw new ExceedsAvailableBalanceException("Withdraw Amount Exceeds Available Balance");
 		}
-	}
-	
-	public boolean deposit(double amount) {
-		if (amount <= 0) {
-			System.out.println("The deposit amount needs to be larger than 0");
-			return false;
-		} else {
-			this.balance += amount;
-			return true;
+		if (amount < 0) {
+			throw new NotFoundException("Unable To Withdraw A Negative Value");
 		}
+		this.balance = this.balance - amount;
+		return true;
 	}
-	
-	public double futureValue(int years) {
-		double futureVal = this.balance * Math.pow(1 + getInterestRate(), years);
-		
-		return futureVal;
+
+	public boolean deposit(double amount) throws NegativeAmountException{
+		if (amount < 0)
+			throw new NegativeAmountException("Unable To Deposit A Negative Value");
+		this.balance = this.balance + amount;
+		return true;
 	}
-	
-	public void addTransaction(Transaction tran){
-		System.out.println("Transaction thing");
-		System.out.println(tran);
-		transactions.add(tran);
-	}
-	
-	public List<Transaction> getTransactions() {
-		return this.transactions;
-	}
-	
-	public long getAccountNumber() {
-		return this.accountNumber;
-	}
-	
+
 	public double getBalance() {
-		return this.balance;
+		return balance;
 	}
-	
-	public double getInterestRate() {
-		return this.interestRate;
-	}
-	
-	public Date getOpenedOn() {
-		return this.openDate;
-	}
-	
-	public void setBalance(double balance){
+
+	public void setBalance(double balance) {
 		this.balance = balance;
 	}
 
-	public Date getOpenDate() {
-		return openDate;
-	}
-
-	public void setOpenDate(Date openDate) {
-		this.openDate = openDate;
-	}
-
-	public void setAccountNumber(long accountNumber) {
-		this.accountNumber = accountNumber;
+	public double getInterestRate() {
+		return interestRate;
 	}
 
 	public void setInterestRate(double interestRate) {
 		this.interestRate = interestRate;
+	}
+
+	public long getAccountNumber() {
+		return accountNumber;
+	}
+
+	public void setAccountNumber(long Number) {
+		this.accountNumber = Number;
+	}
+
+	public Date getOpenedOn() {
+		return OpenedOn;
+	}
+
+	public void setOpenedOn(Date OpenedOn) {
+		this.OpenedOn = OpenedOn;
 	}
 }
